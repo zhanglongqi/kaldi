@@ -5,17 +5,15 @@
 SHELL := /bin/bash
 
 
+
 SUBDIRS = base matrix util feat tree thread gmm transform sgmm \
-          fstext hmm lm decoder lat kws cudamatrix nnet \
-          bin fstbin gmmbin fgmmbin sgmmbin featbin \
-          nnetbin latbin sgmm2 sgmm2bin nnet2 nnet3 nnet3bin nnet2bin kwsbin \
-          ivector ivectorbin online2 online2bin lmbin
+          fstext hmm lm decoder lat  bin  \
+            gmmbin    \
+
 
 MEMTESTDIRS = base matrix util feat tree thread gmm transform sgmm \
-          fstext hmm lm decoder lat nnet \
-          bin fstbin gmmbin fgmmbin sgmmbin featbin \
-          nnetbin latbin sgmm2 nnet2 nnet3 nnet2bin nnet3bin sgmm2bin kwsbin \
-          ivector ivectorbin online2 online2bin lmbin
+          fstext hmm lm decoder lat  bin  \
+            gmmbin    \
 
 CUDAMEMTESTDIR = cudamatrix
 
@@ -145,9 +143,9 @@ $(EXT_SUBDIRS) : mklibdir
 # this is necessary for correct parallel compilation
 #1)The tools depend on all the libraries
 
-bin fstbin gmmbin fgmmbin sgmmbin sgmm2bin featbin nnetbin nnet2bin nnet3bin latbin ivectorbin lmbin: \
- base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm \
- lm decoder lat cudamatrix nnet nnet2 nnet3 ivector
+bin gmmbin : \
+ base matrix util feat tree thread gmm transform sgmm  fstext hmm lm decoder lat
+
 
 #2)The libraries have inter-dependencies
 base:
@@ -156,26 +154,26 @@ util: base matrix
 thread: util matrix base
 feat: base matrix util gmm transform tree thread
 tree: base util matrix
-optimization: base matrix
+# optimization: base matrix
 gmm: base util matrix tree thread
 transform: base util matrix gmm tree thread
 sgmm: base util matrix gmm tree transform thread hmm
-sgmm2: base util matrix gmm tree transform thread hmm
+# sgmm2: base util matrix gmm tree transform thread hmm
 fstext: base util matrix tree
 hmm: base tree matrix util
 lm: base util fstext
 decoder: base util matrix gmm sgmm hmm tree transform lat
 lat: base util hmm tree matrix
-cudamatrix: base util matrix	
-nnet: base util matrix cudamatrix
-nnet2: base util matrix thread lat gmm hmm tree transform cudamatrix
-nnet3: base util matrix thread lat gmm hmm tree transform cudamatrix
-ivector: base util matrix thread transform tree gmm 
+# cudamatrix: base util matrix
+# nnet: base util matrix cudamatrix
+# nnet2: base util matrix thread lat gmm hmm tree transform cudamatrix
+# nnet3: base util matrix thread lat gmm hmm tree transform cudamatrix
+# ivector: base util matrix thread transform tree gmm
 #3)Dependencies for optional parts of Kaldi
-onlinebin: base matrix util feat tree optimization gmm transform sgmm sgmm2 fstext hmm lm decoder lat cudamatrix nnet nnet2 online thread
-online2bin: base matrix util feat tree optimization gmm transform sgmm sgmm2 fstext hmm lm decoder lat cudamatrix nnet nnet2 online2 thread ivector
-# python-kaldi-decoding: base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm decoder lat online
-online: decoder gmm transform feat matrix util base lat hmm thread tree
-online2: decoder gmm transform feat matrix util base lat hmm thread ivector cudamatrix nnet2
-kws: base util hmm tree matrix lat
-kwsbin: fstext kws lat base util hmm tree matrix
+# onlinebin: base matrix util feat tree optimization gmm transform sgmm sgmm2 fstext hmm lm decoder lat cudamatrix nnet nnet2 online thread
+# online2bin: base matrix util feat tree optimization gmm transform sgmm sgmm2 fstext hmm lm decoder lat cudamatrix nnet nnet2 online2 thread ivector
+# # python-kaldi-decoding: base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm decoder lat online
+# online: decoder gmm transform feat matrix util base lat hmm thread tree
+# online2: decoder gmm transform feat matrix util base lat hmm thread ivector cudamatrix nnet2
+# kws: base util hmm tree matrix lat
+# kwsbin: fstext kws lat base util hmm tree matrix
