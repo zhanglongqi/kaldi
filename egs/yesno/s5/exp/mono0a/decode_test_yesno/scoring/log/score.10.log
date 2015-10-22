@@ -1,0 +1,5 @@
+# cat exp/mono0a/decode_test_yesno/scoring/10.tra | utils/int2sym.pl -f 2- exp/mono0a/graph_tgpr/words.txt | sed s:\<UNK\>::g | compute-wer --text --mode=present ark:exp/mono0a/decode_test_yesno/scoring/test_filt.txt ark,p:- >& exp/mono0a/decode_test_yesno/wer_10 
+# Started at Thu Oct 22 22:40:14 SGT 2015
+#
+# Accounting: time=0 threads=1
+# Ended (code 0) at Thu Oct 22 22:40:14 SGT 2015, elapsed time 0 seconds
