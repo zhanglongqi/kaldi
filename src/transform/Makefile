@@ -7,7 +7,8 @@ TESTFILES = regtree-fmllr-diag-gmm-test lda-estimate-test \
       regtree-mllr-diag-gmm-test fmpe-test fmllr-raw-test
 
 OBJFILES = regression-tree.o regtree-mllr-diag-gmm.o  \
-    regtree-fmllr-diag-gmm.o  transform-common.o fmllr-diag-gmm.o
+    regtree-fmllr-diag-gmm.o  transform-common.o fmllr-diag-gmm.o\
+    cmvn.o
 
 
 LIBNAME = kaldi-transform
