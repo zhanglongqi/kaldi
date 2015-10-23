@@ -28,7 +28,7 @@
 #include "fstext/fstext-lib.h"
 #include "decoder/decoder-wrappers.h"
 #include "gmm/decodable-am-diag-gmm.h"
-#include "base/timer.h"
+//#include "base/timer.h" //Charles: unnecessary
 #include "feat/feature-functions.h"  // feature reversal
 
 int main(int argc, char *argv[]) {
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
         "Usage: gmm-latgen-faster [options] model-in (fst-in|fsts-rspecifier) features-rspecifier"
         " lattice-wspecifier [ words-wspecifier [alignments-wspecifier] ]\n";
     ParseOptions po(usage);
-    Timer timer;
+//    Timer timer;
     bool allow_partial = false;
     BaseFloat acoustic_scale = 0.1;
     LatticeFasterDecoderConfig config;
@@ -59,6 +59,9 @@ int main(int argc, char *argv[]) {
                 "If true, produce output even if end state was not reached.");
     
     po.Read(argc, argv);
+
+    //Charles: assign varialbs manully
+    //word_syms_filename = /*a path*/;
 
     if (po.NumArgs() < 4 || po.NumArgs() > 6) {
       po.PrintUsage();
@@ -89,9 +92,9 @@ int main(int argc, char *argv[]) {
       KALDI_ERR << "Could not open table for writing lattices: "
                  << lattice_wspecifier;
 
-    Int32VectorWriter words_writer(words_wspecifier);
+    Int32VectorWriter words_writer(words_wspecifier); //Charles: words_wspecifier is empty
 
-    Int32VectorWriter alignment_writer(alignment_wspecifier);
+    Int32VectorWriter alignment_writer(alignment_wspecifier); //Charles: alignment_wspecifier is empty
 
     fst::SymbolTable *word_syms = NULL;
     if (word_syms_filename != "") 
@@ -106,7 +109,7 @@ int main(int argc, char *argv[]) {
     if (ClassifyRspecifier(fst_in_str, NULL, NULL) == kNoRspecifier) {
       SequentialBaseFloatMatrixReader feature_reader(feature_rspecifier);
       // Input FST is just one FST, not a table of FSTs.
-      VectorFst<StdArc> *decode_fst = fst::ReadFstKaldi(fst_in_str);
+      VectorFst<StdArc> *decode_fst = fst::ReadFstKaldi(fst_in_str); //Charles: fst_in_str = exp/mono0a/graph_tgpr/HCLG.fst
       
       {
         LatticeFasterDecoder decoder(*decode_fst, config);
@@ -130,14 +133,14 @@ int main(int argc, char *argv[]) {
                   acoustic_scale, determinize, allow_partial, &alignment_writer,
                   &words_writer, &compact_lattice_writer, &lattice_writer,
                   &like)) {
-            tot_like += like;
-            frame_count += features.NumRows();
-            num_done++;
-          } else num_err++;
+            //tot_like += like;
+            //frame_count += features.NumRows();
+            //num_done++;
+          } /*else num_err++;*/
         }
       }
       delete decode_fst; // delete this only after decoder goes out of scope.
-    } else { // We have different FSTs for different utterances.
+    } /*else { // We have different FSTs for different utterances.
       SequentialTableReader<fst::VectorFstHolder> fst_reader(fst_in_str);
       RandomAccessBaseFloatMatrixReader feature_reader(feature_rspecifier);          
       for (; !fst_reader.Done(); fst_reader.Next()) {
@@ -182,7 +185,7 @@ int main(int argc, char *argv[]) {
 
     delete word_syms;
     if (num_done != 0) return 0;
-    else return 1;
+    else return 1;*/
   } catch(const std::exception &e) {
     std::cerr << e.what();
     return -1;
