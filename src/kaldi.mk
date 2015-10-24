@@ -37,7 +37,7 @@ $(error ATLASLIBS not defined.)
 endif
 
 
-CXXFLAGS = -msse -msse2 -Wall -I.. \
+CXXFLAGS = -finstrument-functions -msse -msse2 -Wall -I.. \
 	   -pthread \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
