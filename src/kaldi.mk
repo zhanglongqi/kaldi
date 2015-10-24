@@ -37,10 +37,10 @@ $(error ATLASLIBS not defined.)
 endif
 
 
-CXXFLAGS = -finstrument-functions -msse -msse2 -Wall -I.. \
+CXXFLAGS = -finstrument-functions  -Wall -I.. \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
-      -DHAVE_EXECINFO_H=1 -rdynamic -DHAVE_CXXABI_H \
+      -DHAVE_EXECINFO_H=1 -shared -DHAVE_CXXABI_H \
       -DHAVE_ATLAS -I$(ATLASINC) \
       -I$(FSTROOT)/include \
       $(EXTRA_CXXFLAGS) \
@@ -50,12 +50,12 @@ ifeq ($(KALDI_FLAVOR), dynamic)
 CXXFLAGS += -fPIC
 endif
 
-LDFLAGS = -rdynamic $(OPENFSTLDFLAGS)
+LDFLAGS = -shared $(OPENFSTLDFLAGS)
 LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
-CC = g++
-CXX = g++
-AR = ar
-AS = as
+CC = /usr/bin/arm-none-eabi-c++
+CXX = /usr/bin/arm-none-eabi-c++
+AR = /usr/bin/arm-none-eabi-ar
+AS = /usr/bin/arm-none-eabi-as
 RANLIB = ranlib
 
 CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include
