@@ -6,12 +6,12 @@ SHELL := /bin/bash
 
 
 
-SUBDIRS = base matrix util feat tree thread gmm transform \
+SUBDIRS = base matrix util feat tree gmm transform \
           fstext hmm decoder lat    \
             gmmbin  featbin  \
 
 
-MEMTESTDIRS = base matrix util feat tree thread gmm transform \
+MEMTESTDIRS = base matrix util feat tree gmm transform \
           fstext hmm decoder lat    \
             gmmbin  featbin  \
 
@@ -144,19 +144,19 @@ $(EXT_SUBDIRS) : mklibdir
 #1)The tools depend on all the libraries
 
 gmmbin featbin: \
- base matrix util feat tree thread gmm transform  fstext hmm decoder lat
+ base matrix util feat tree gmm transform  fstext hmm decoder lat
 
 
 #2)The libraries have inter-dependencies
 base:
 matrix : base
 util: base matrix
-thread: util matrix base
-feat: base matrix util gmm transform tree thread
+#thread: util matrix base
+feat: base matrix util gmm transform tree 
 tree: base util matrix
 # optimization: base matrix
-gmm: base util matrix tree thread
-transform: base util matrix gmm tree thread
+gmm: base util matrix tree 
+transform: base util matrix gmm tree 
 # sgmm: base util matrix gmm tree transform thread hmm
 # sgmm2: base util matrix gmm tree transform thread hmm
 fstext: base util matrix tree

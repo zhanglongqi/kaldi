@@ -21,7 +21,7 @@
 #include <string>
 #include "base/kaldi-math.h"
 #ifndef _MSC_VER
-#include <pthread.h>
+//#include <pthread.h>
 #endif
 
 namespace kaldi {
@@ -52,11 +52,11 @@ int Rand(struct RandomState* state)
     return rand_r(&(state->seed));
   }
   else {
-    int rs = pthread_mutex_lock(&_RandMutex);
-    KALDI_ASSERT(rs == 0);
+//    int rs = pthread_mutex_lock(&_RandMutex);
+//    KALDI_ASSERT(rs == 0);
     int val = rand();
-    rs = pthread_mutex_unlock(&_RandMutex);
-    KALDI_ASSERT(rs == 0);
+//    rs = pthread_mutex_unlock(&_RandMutex);
+//    KALDI_ASSERT(rs == 0);
     return val;
   }
 #endif

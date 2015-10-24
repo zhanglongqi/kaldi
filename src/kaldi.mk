@@ -38,7 +38,6 @@ endif
 
 
 CXXFLAGS = -finstrument-functions -msse -msse2 -Wall -I.. \
-	   -pthread \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
       -DHAVE_EXECINFO_H=1 -rdynamic -DHAVE_CXXABI_H \
@@ -52,7 +51,7 @@ CXXFLAGS += -fPIC
 endif
 
 LDFLAGS = -rdynamic $(OPENFSTLDFLAGS)
-LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -lpthread -ldl
+LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
 CC = g++
 CXX = g++
 AR = ar
