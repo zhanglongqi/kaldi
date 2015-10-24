@@ -39,7 +39,7 @@ int32 RoundUpToNearestPowerOfTwo(int32 n) {
 }
 
 #ifndef _MSC_VER
-static pthread_mutex_t _RandMutex = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t _RandMutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 int Rand(struct RandomState* state)
