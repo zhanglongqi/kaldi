@@ -543,7 +543,7 @@ void LatticeFasterDecoder::ComputeFinalCosts(
     }
   }
 }
-
+// not used in our decoding
 void LatticeFasterDecoder::AdvanceDecoding(DecodableInterface *decodable,
                                              int32 max_num_frames) {
   KALDI_ASSERT(!active_toks_.empty() && !decoding_finalized_ &&
