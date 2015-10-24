@@ -52,10 +52,10 @@ endif
 
 LDFLAGS = -shared $(OPENFSTLDFLAGS)
 LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
-CC = /usr/bin/arm-none-eabi-c++
-CXX = /usr/bin/arm-none-eabi-c++
-AR = /usr/bin/arm-none-eabi-ar
-AS = /usr/bin/arm-none-eabi-as
+CC = arm-none-eabi-c++
+CXX = arm-none-eabi-c++
+AR = arm-none-eabi-ar
+AS = arm-none-eabi-as
 RANLIB = ranlib
 
 CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include
