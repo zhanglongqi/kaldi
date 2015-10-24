@@ -37,7 +37,7 @@ $(error ATLASLIBS not defined.)
 endif
 
 
-CXXFLAGS = -finstrument-functions  -Wall -I.. \
+CXXFLAGS = -finstrument-functions  -I.. \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
       -DHAVE_EXECINFO_H=1 -shared -DHAVE_CXXABI_H \
@@ -52,12 +52,14 @@ endif
 
 LDFLAGS = -shared $(OPENFSTLDFLAGS)
 LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
-CC = arm-none-eabi-c++
-CXX = arm-none-eabi-c++
-AR = arm-none-eabi-ar
-AS = arm-none-eabi-as
+CC = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-g++
+CXX = $(CC)
+AR = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-ar
+AS = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-as
 RANLIB = ranlib
 
-CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include
-LDLIBS += -L/home/longqi/kaldi-trunk/src/../tools/speex/lib -lspeex
+CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include \
+	    -I/opt/Xilinx/SDK/2015.2/gnu/arm/lin/arm-xilinx-eabi/include/c++/4.9.1
+LDLIBS += -L/home/longqi/kaldi-trunk/src/../tools/speex/lib -lspeex \
+	    -L/opt/Xilinx/SDK/2015.2/gnu/arm/lin/arm-xilinx-eabi/lib
 LDFLAGS += -Wl,-rpath=/home/longqi/kaldi-trunk/src/../tools/speex/lib
