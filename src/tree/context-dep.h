@@ -57,8 +57,8 @@ static const EventKeyType kPdfClass = -1;  // The "name" to which we assign the
  */
 class ContextDependency: public ContextDependencyInterface {
  public:
-  virtual int32 ContextWidth() const { return N_; }
-  virtual int32 CentralPosition() const { return P_; }
+  virtual int ContextWidth() const { return N_; }
+  virtual int CentralPosition() const { return P_; }
 
 
   /// returns success or failure; outputs pdf to pdf_id
