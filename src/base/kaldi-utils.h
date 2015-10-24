@@ -40,8 +40,10 @@
 #endif
 
 #ifdef HAVE_POSIX_MEMALIGN
+#include <cstdlib>
 #  define KALDI_MEMALIGN(align, size, pp_orig) \
-     (!posix_memalign(pp_orig, align, size) ? *(pp_orig) : NULL)
+      (calloc(size, align ))
+//     (!posix_memalign(pp_orig, align, size) ? *(pp_orig) : NULL)
 #  define KALDI_MEMALIGN_FREE(x) free(x)
 #elif defined(HAVE_MEMALIGN)
   /* Some systems have memalign() but no declaration for it */
