@@ -15,4 +15,5 @@ windows/INSTALL*   eol=native
 windows/NewGuidCmd.exe.config text eol=crlf
 windows/NewGuidCmd.exe binary
 
-
+*.ark binary
+*.mdl binary
