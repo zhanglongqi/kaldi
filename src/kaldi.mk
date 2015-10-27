@@ -13,13 +13,14 @@ valgrind: .valgrind
 	rm valgrind.out
 	touch .valgrind
 
-ALTAS = /home/longqi/kaldi-trunk/tools/ATLAS
+
+ALTAS = $(KALDI_ROOT)/tools/ATLAS
 CONFIGURE_VERSION := 2
-FSTROOT = /home/longqi/kaldi-trunk/tools/openfst
+FSTROOT = $(KALDI_ROOT)/tools/openfst
 OPENFST_VER = 1.3.4
 OPENFST_GE_10400 = 0
-OPENFSTLIBS = -L/home/longqi/kaldi-trunk/tools/openfst/lib -lfst
-OPENFSTLDFLAGS = -Wl,-rpath=/home/longqi/kaldi-trunk/tools/openfst/lib
+OPENFSTLIBS = -L$(KALDI_ROOT)/tools/openfst/lib -lfst
+OPENFSTLDFLAGS = -Wl,-rpath=$(KALDI_ROOT)/tools/openfst/lib
 ATLASINC = $(ALTAS)/include
 ATLASLIBS = $(ALTAS)/lib/libatlas.so.3 $(ALTAS)/lib/libf77blas.so.3 $(ALTAS)/lib/libcblas.so.3 $(ALTAS)/lib/liblapack_atlas.so.3 \
 	    $(ALTAS)/lib/libgfortran.so.3 
