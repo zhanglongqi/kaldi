@@ -13,15 +13,16 @@ valgrind: .valgrind
 	rm valgrind.out
 	touch .valgrind
 
-
+ALTAS = /home/longqi/kaldi-trunk/tools/ATLAS
 CONFIGURE_VERSION := 2
 FSTROOT = /home/longqi/kaldi-trunk/tools/openfst
 OPENFST_VER = 1.3.4
 OPENFST_GE_10400 = 0
 OPENFSTLIBS = -L/home/longqi/kaldi-trunk/tools/openfst/lib -lfst
 OPENFSTLDFLAGS = -Wl,-rpath=/home/longqi/kaldi-trunk/tools/openfst/lib
-ATLASINC = /home/longqi/kaldi-trunk/tools/ATLAS/include
-ATLASLIBS = /usr/lib/libatlas.so.3 /usr/lib/libf77blas.so.3 /usr/lib/libcblas.so.3 /usr/lib/liblapack_atlas.so.3
+ATLASINC = $(ALTAS)/include
+ATLASLIBS = $(ALTAS)/lib/libatlas.so.3 $(ALTAS)/lib/libf77blas.so.3 $(ALTAS)/lib/libcblas.so.3 $(ALTAS)/lib/liblapack_atlas.so.3 \
+	    $(ALTAS)/lib/libgfortran.so.3 
 # You have to make sure ATLASLIBS is set...
 
 ifndef FSTROOT
@@ -40,7 +41,7 @@ endif
 CXXFLAGS = -finstrument-functions  -I.. \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
-      -DHAVE_EXECINFO_H=1 -shared -DHAVE_CXXABI_H \
+      -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
       -DHAVE_ATLAS -I$(ATLASINC) \
       -I$(FSTROOT)/include \
       $(EXTRA_CXXFLAGS) \
@@ -50,16 +51,14 @@ ifeq ($(KALDI_FLAVOR), dynamic)
 CXXFLAGS += -fPIC
 endif
 
-LDFLAGS = -shared $(OPENFSTLDFLAGS)
+LDFLAGS = $(OPENFSTLDFLAGS)
 LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
-CC = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-g++
+CC = arm-linux-gnueabihf-g++
 CXX = $(CC)
-AR = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-ar
-AS = /opt/Xilinx/SDK/2015.2/gnu/arm/lin/bin/arm-xilinx-eabi-as
+AR = arm-linux-gnueabihf-ar
+AS = arm-linux-gnueabihf-as
 RANLIB = ranlib
 
-CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include \
-	    -I/opt/Xilinx/SDK/2015.2/gnu/arm/lin/arm-xilinx-eabi/include/c++/4.9.1
-LDLIBS += -L/home/longqi/kaldi-trunk/src/../tools/speex/lib -lspeex \
-	    -L/opt/Xilinx/SDK/2015.2/gnu/arm/lin/arm-xilinx-eabi/lib
+CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include 
+LDLIBS += -L/home/longqi/kaldi-trunk/src/../tools/speex/lib -lspeex 
 LDFLAGS += -Wl,-rpath=/home/longqi/kaldi-trunk/src/../tools/speex/lib
