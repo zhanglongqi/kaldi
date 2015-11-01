@@ -265,12 +265,12 @@ bool DecodeUtteranceLatticeFaster(
 //		num_frames = alignment.size();
 
 		//TODO: Charles: write utt to words?? so utt is the result??
-		if (words_writer->IsOpen())
-			words_writer->Write(utt, words);
+		/*if (words_writer->IsOpen())
+			words_writer->Write(utt, words);*/
 
 		//TODO: what is alignment for? why does it need to write utt to alignment? it is not used below.
-		if (alignment_writer->IsOpen())
-			alignment_writer->Write(utt, alignment);
+		/*if (alignment_writer->IsOpen())
+			alignment_writer->Write(utt, alignment);*/
 
 		//Charles: trying to match decode word with word_syms(a txt file?)
 		if (word_syms != NULL)
@@ -282,8 +282,7 @@ bool DecodeUtteranceLatticeFaster(
 				std::string s = word_syms->Find(words[i]);
 				if (s == "")
 					;
-				else
-					std::cerr << s << ' ';
+				std::cerr << s << ' ';
 			}
 			std::cerr << '\n';
 		}
