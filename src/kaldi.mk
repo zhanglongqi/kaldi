@@ -60,6 +60,6 @@ AR = arm-linux-gnueabihf-ar
 AS = arm-linux-gnueabihf-as
 RANLIB = ranlib
 
-CXXFLAGS += -DHAVE_SPEEX -I/home/longqi/kaldi-trunk/src/../tools/speex/include 
-LDLIBS += -L/home/longqi/kaldi-trunk/src/../tools/speex/lib -lspeex 
-LDFLAGS += -Wl,-rpath=/home/longqi/kaldi-trunk/src/../tools/speex/lib
+CXXFLAGS += -DHAVE_SPEEX -I$(KALDI_ROOT)/src/../tools/speex/include 
+LDLIBS += -L$(KALDI_ROOT)/src/../tools/speex/lib -lspeex
+LDFLAGS += -Wl,-rpath=$(KALDI_ROOT)/src/../tools/speex/lib
