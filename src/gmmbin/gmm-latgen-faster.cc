@@ -113,16 +113,16 @@ int main(int argc, char *argv[]) {
     std::string cmvn_rspecifier ="ark:data/test_yesno/split1/2/cmvn_test_yesno.ark";
     std::string utt2spk_rspecifier = "ark:data/test_yesno/split1/2/utt2spk";
     
-    /*RandomAccessDoubleMatrixReaderMapped cmvn_reader(cmvn_rspecifier,
-                                                       utt2spk_rspecifier);*/
+    RandomAccessDoubleMatrixReaderMapped cmvn_reader(cmvn_rspecifier,
+                                                       utt2spk_rspecifier);
     
-    RandomAccessDoubleVectorReader cmvn_reader(cmvn_rspecifier);        
+    //RandomAccessDoubleVectorReader cmvn_reader(cmvn_rspecifier);        
     SequentialBaseFloatMatrixReader feat_reader(feat_rspecifier);
     std::string utt = feat_reader.Key();
     Matrix<BaseFloat> feats(feat_reader.Value());
-    // Matrix<double> cmvn_stats = cmvn_reader.Value();
+    Matrix<double> cmvn_stats = cmvn_reader.Value(utt);
     
-   // ApplyCmvn(cmvn_stats, false, &feats);
+    ApplyCmvn(cmvn_stats, false, &feats);
     
     DeltaFeaturesOptions opts;
     Matrix<BaseFloat> features;
