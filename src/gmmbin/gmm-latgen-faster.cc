@@ -33,8 +33,12 @@
 
 //Charles: add cmvn lib
 #include "transform/cmvn.h"
+#include <sys/time.h>
 
 int main(int argc, char *argv[]) {
+    timeval begin,end,decode_begin,decode_end;
+    gettimeofday(&begin,NULL);
+    
   try {
     using namespace kaldi;
     typedef kaldi::int32 int32;
@@ -136,7 +140,9 @@ int main(int argc, char *argv[]) {
     //Charles add: use another way to read feature
     //feature_rspecifier = "ark:/tmp/transforms.ark";
     if (ClassifyRspecifier(fst_in_str, NULL, NULL) == kNoRspecifier) {
-       //Charles: use another way to read feature
+       gettimeofday(&decode_begin,NULL);
+
+        //Charles: use another way to read feature
         //Charles: commented, because used cmvn function directly
       //SequentialBaseFloatMatrixReader feature_reader(feature_rspecifier);
       
@@ -175,6 +181,8 @@ int main(int argc, char *argv[]) {
             //num_done++;
           } /*else num_err++;*/
         //}//end of for (; !feature_reader.Done()
+         gettimeofday(&decode_end,NULL);
+
       }
       delete decode_fst; // delete this only after decoder goes out of scope.
     } /*else { // We have different FSTs for different utterances.
@@ -227,4 +235,8 @@ int main(int argc, char *argv[]) {
     std::cerr << e.what();
     return -1;
   }
+    gettimeofday(&end,NULL);
+    std::cerr << "total time spend (us): "<< end.tv_usec - begin.tv_usec << endl;
+    std::cerr << "decoding time spend (us): "<< decode_end.tv_usec - decode_begin.tv_usec << endl;
+
 }
