@@ -181,9 +181,10 @@ int main(int argc, char *argv[]) {
             //num_done++;
           } /*else num_err++;*/
         //}//end of for (; !feature_reader.Done()
-         gettimeofday(&decode_end,NULL);
-
       }
+    
+      gettimeofday(&decode_end,NULL);
+      
       delete decode_fst; // delete this only after decoder goes out of scope.
     } /*else { // We have different FSTs for different utterances.
       SequentialTableReader<fst::VectorFstHolder> fst_reader(fst_in_str);
@@ -231,12 +232,13 @@ int main(int argc, char *argv[]) {
     delete word_syms;
     if (num_done != 0) return 0;
     else return 1;*/
+    gettimeofday(&end,NULL);
+    std::cerr << "total time spend (us): "<< end.tv_usec - begin.tv_usec << endl;
+    std::cerr << "decoding time spend (us): "<< decode_end.tv_usec - decode_begin.tv_usec << endl;
+
   } catch(const std::exception &e) {
     std::cerr << e.what();
     return -1;
   }
-    gettimeofday(&end,NULL);
-    std::cerr << "total time spend (us): "<< end.tv_usec - begin.tv_usec << endl;
-    std::cerr << "decoding time spend (us): "<< decode_end.tv_usec - decode_begin.tv_usec << endl;
 
 }
