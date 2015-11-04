@@ -28,17 +28,15 @@
 #include "fstext/fstext-lib.h"
 #include "decoder/decoder-wrappers.h"
 #include "gmm/decodable-am-diag-gmm.h"
-//#include "base/timer.h" //Charles: unnecessary
+#include "base/timer.h"
 #include "feat/feature-functions.h"  // feature reversal
 
-//Charles: add cmvn lib
 #include "transform/cmvn.h"
 #include <sys/time.h>
 
 int main(int argc, char *argv[]) {
     timeval begin,end,decode_begin,decode_end;
     gettimeofday(&begin,NULL);
-    
   try {
     using namespace kaldi;
     typedef kaldi::int32 int32;
@@ -51,7 +49,7 @@ int main(int argc, char *argv[]) {
         "Usage: gmm-latgen-faster [options] model-in (fst-in|fsts-rspecifier) features-rspecifier"
         " lattice-wspecifier [ words-wspecifier [alignments-wspecifier] ]\n";
     ParseOptions po(usage);
-//    Timer timer;
+    Timer timer;
     bool allow_partial = false;
     BaseFloat acoustic_scale = 0.1;
     LatticeFasterDecoderConfig config;
@@ -67,20 +65,17 @@ int main(int argc, char *argv[]) {
     
     po.Read(argc, argv);
 
-    //Charles: assign varialbs manully
-    //word_syms_filename = /*a path*/;
-
-   /* if (po.NumArgs() < 4 || po.NumArgs() > 6) {
+    if (po.NumArgs() < 4 || po.NumArgs() > 6) {
       po.PrintUsage();
       exit(1);
-    }*/
+    }
 
     std::string model_in_filename = po.GetArg(1),
-        fst_in_str = po.GetArg(2);
-        /*feature_rspecifier = po.GetArg(3),
+        fst_in_str = po.GetArg(2),
+        feature_rspecifier = po.GetArg(3),
         lattice_wspecifier = po.GetArg(4),
         words_wspecifier = po.GetOptArg(5),
-        alignment_wspecifier = po.GetOptArg(6);*/
+        alignment_wspecifier = po.GetOptArg(6);
     
     TransitionModel trans_model;
     AmDiagGmm am_gmm;
@@ -91,19 +86,17 @@ int main(int argc, char *argv[]) {
       am_gmm.Read(ki.Stream(), binary);
     }
 
-    /*bool determinize = config.determinize_lattice;
+    bool determinize = config.determinize_lattice;
     CompactLatticeWriter compact_lattice_writer;
-    LatticeWriter lattice_writer;*/
-    /*if (! (determinize ? compact_lattice_writer.Open(lattice_wspecifier)
+    LatticeWriter lattice_writer;
+    if (! (determinize ? compact_lattice_writer.Open(lattice_wspecifier)
            : lattice_writer.Open(lattice_wspecifier)))
       KALDI_ERR << "Could not open table for writing lattices: "
-                 << lattice_wspecifier;*/
+                 << lattice_wspecifier;
 
-    //Int32VectorWriter words_writer(words_wspecifier); //Charles: words_wspecifier is empty
-    //Int32VectorWriter words_writer(""); //Charles: words_wspecifier is empty
+    Int32VectorWriter words_writer(words_wspecifier);
 
-    //Int32VectorWriter alignment_writer(alignment_wspecifier); //Charles: alignment_wspecifier is empty
-    //Int32VectorWriter alignment_writer(""); //Charles: alignment_wspecifier is empty
+    Int32VectorWriter alignment_writer(alignment_wspecifier);
 
     fst::SymbolTable *word_syms = NULL;
     if (word_syms_filename != "") 
@@ -111,81 +104,48 @@ int main(int argc, char *argv[]) {
         KALDI_ERR << "Could not read symbol table from file "
                    << word_syms_filename;
 
-    /***************************Charles add cmvn*************************************/   
-    //std::string feat_rspecifier = "scp:data/test_yesno/split1/2/feats.scp";
-    std::string feat_rspecifier = "ark:data/test_yesno/split1/2/charles_test_yesno.ark";
-    std::string cmvn_rspecifier ="ark:data/test_yesno/split1/2/cmvn_test_yesno.ark";
-    std::string utt2spk_rspecifier = "ark:data/test_yesno/split1/2/utt2spk";
-    
-    RandomAccessDoubleMatrixReaderMapped cmvn_reader(cmvn_rspecifier,
-                                                       utt2spk_rspecifier);
-    
-    //RandomAccessDoubleVectorReader cmvn_reader(cmvn_rspecifier);        
-    SequentialBaseFloatMatrixReader feat_reader(feat_rspecifier);
-    std::string utt = feat_reader.Key();
-    Matrix<BaseFloat> feats(feat_reader.Value());
-    Matrix<double> cmvn_stats = cmvn_reader.Value(utt);
-    
-    ApplyCmvn(cmvn_stats, false, &feats);
-    
-    DeltaFeaturesOptions opts;
-    Matrix<BaseFloat> features;
-    ComputeDeltas(opts, feats, &features);
-    /***************************Charles add cmvn*************************************/
+    double tot_like = 0.0;
+    kaldi::int64 frame_count = 0;
+    int num_done = 0, num_err = 0;
 
-    //double tot_like = 0.0;
-    //kaldi::int64 frame_count = 0;
-    //int num_done = 0, num_err = 0;
-
-    //Charles add: use another way to read feature
-    //feature_rspecifier = "ark:/tmp/transforms.ark";
     if (ClassifyRspecifier(fst_in_str, NULL, NULL) == kNoRspecifier) {
-       gettimeofday(&decode_begin,NULL);
+        gettimeofday(&decode_begin,NULL);
 
-        //Charles: use another way to read feature
-        //Charles: commented, because used cmvn function directly
-      //SequentialBaseFloatMatrixReader feature_reader(feature_rspecifier);
-      
+      SequentialBaseFloatMatrixReader feature_reader(feature_rspecifier);
       // Input FST is just one FST, not a table of FSTs.
-      VectorFst<StdArc> *decode_fst = fst::ReadFstKaldi(fst_in_str); //Charles: fst_in_str = exp/mono0a/graph_tgpr/HCLG.fst
+      VectorFst<StdArc> *decode_fst = fst::ReadFstKaldi(fst_in_str);
       
       {
         LatticeFasterDecoder decoder(*decode_fst, config);
     
-        //Charles: commented, because used cmvn function directly
-        /*for (; !feature_reader.Done(); feature_reader.Next()) {
+        for (; !feature_reader.Done(); feature_reader.Next()) {
           std::string utt = feature_reader.Key();
           Matrix<BaseFloat> features (feature_reader.Value());
-          feature_reader.FreeCurrent();*/
-          /*if (features.NumRows() == 0) {
+          feature_reader.FreeCurrent();
+          if (features.NumRows() == 0) {
             KALDI_WARN << "Zero-length utterance: " << utt;
             num_err++;
             continue;
-          }*/
-
+          }
+          
           DecodableAmDiagGmmScaled gmm_decodable(am_gmm, trans_model, features,
                                                  acoustic_scale);
 
-          //double like;
-          /*if (DecodeUtteranceLatticeFaster(
+          double like;
+          if (DecodeUtteranceLatticeFaster(
                   decoder, gmm_decodable, trans_model, word_syms, utt,
                   acoustic_scale, determinize, allow_partial, &alignment_writer,
                   &words_writer, &compact_lattice_writer, &lattice_writer,
-                  &like)) {*/
-          if (DecodeUtteranceLatticeFaster(
-                  decoder, gmm_decodable, trans_model, word_syms, utt,
-                  acoustic_scale, false, false, NULL,
-                  NULL, NULL, NULL,NULL)) {
-            //tot_like += like;
-            //frame_count += features.NumRows();
-            //num_done++;
-          } /*else num_err++;*/
-        //}//end of for (; !feature_reader.Done()
-         gettimeofday(&decode_end,NULL);
-
+                  &like)) {
+            tot_like += like;
+            frame_count += features.NumRows();
+            num_done++;
+          } else num_err++;
+        }
       }
+      gettimeofday(&decode_end,NULL);
       delete decode_fst; // delete this only after decoder goes out of scope.
-    } /*else { // We have different FSTs for different utterances.
+    } else { // We have different FSTs for different utterances.
       SequentialTableReader<fst::VectorFstHolder> fst_reader(fst_in_str);
       RandomAccessBaseFloatMatrixReader feature_reader(feature_rspecifier);          
       for (; !fst_reader.Done(); fst_reader.Next()) {
@@ -227,16 +187,16 @@ int main(int argc, char *argv[]) {
               << num_err;
     KALDI_LOG << "Overall log-likelihood per frame is " << (tot_like/frame_count) << " over "
               << frame_count << " frames.";
-
+    gettimeofday(&end,NULL);
+    std::cerr << "total time spend (us): "<< end.tv_usec - begin.tv_usec << endl;
+    std::cerr << "decoding time spend (us): "<< decode_end.tv_usec - decode_begin.tv_usec << endl;
+    
     delete word_syms;
     if (num_done != 0) return 0;
-    else return 1;*/
+    else return 1;
   } catch(const std::exception &e) {
     std::cerr << e.what();
     return -1;
   }
-    gettimeofday(&end,NULL);
-    std::cerr << "total time spend (us): "<< end.tv_usec - begin.tv_usec << endl;
-    std::cerr << "decoding time spend (us): "<< decode_end.tv_usec - decode_begin.tv_usec << endl;
-
+   
 }
