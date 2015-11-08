@@ -17,3 +17,4 @@ windows/NewGuidCmd.exe binary
 
 *.ark binary
 *.mdl binary
+*.png binary
