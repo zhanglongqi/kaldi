@@ -39,7 +39,7 @@ $(error ATLASLIBS not defined.)
 endif
 
 
-CXXFLAGS = -finstrument-functions  -I.. \
+CXXFLAGS = -finstrument-functions  -I.. -pthread \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
@@ -53,7 +53,7 @@ CXXFLAGS += -fPIC
 endif
 
 LDFLAGS = $(OPENFSTLDFLAGS)
-LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -ldl
+LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(ATLASLIBS) -lm -lpthread -ldl 
 CC = arm-linux-gnueabihf-g++
 CXX = $(CC)
 AR = arm-linux-gnueabihf-ar
