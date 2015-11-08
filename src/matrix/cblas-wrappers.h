@@ -26,6 +26,7 @@
 #include "matrix/kaldi-vector.h"
 #include "matrix/kaldi-matrix.h"
 #include "matrix/matrix-functions.h"
+#include "matrix/accelerate.h"
 
 // Do not include this file directly.  It is to be included
 // by .cc files in this directory.
@@ -72,7 +73,8 @@ inline double cblas_Xdot(const int N, const double *const X,
 }
 inline void cblas_Xaxpy(const int N, const float alpha, const float *X,
                         const int incX, float *Y, const int incY) {
-  cblas_saxpy(N, alpha, X, incX, Y, incY);
+ // cblas_saxpy(N, alpha, X, incX, Y, incY);
+    accelerate_saxpy(N, alpha, X, incX, Y, incY);
 }
 inline void cblas_Xaxpy(const int N, const double alpha, const double *X,
                         const int incX, double *Y, const int incY) {
