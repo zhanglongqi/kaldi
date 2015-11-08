@@ -39,7 +39,8 @@ $(error ATLASLIBS not defined.)
 endif
 
 
-CXXFLAGS = -finstrument-functions  -I.. -pthread \
+CXXFLAGS = -finstrument-functions  -I.. \
+      -pthread -mfloat-abi=hard -mfpu=neon \
       -DKALDI_DOUBLEPRECISION=0 -DHAVE_POSIX_MEMALIGN \
       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
@@ -60,6 +61,7 @@ AR = arm-linux-gnueabihf-ar
 AS = arm-linux-gnueabihf-as
 RANLIB = ranlib
 
-CXXFLAGS += -DHAVE_SPEEX -I$(KALDI_ROOT)/src/../tools/speex-1.2rc1-arm/include 
+CXXFLAGS += -DHAVE_SPEEX -I$(KALDI_ROOT)/src/../tools/speex-1.2rc1-arm/include \
+	    -I$(KALDI_ROOT)/tools/CLAPACK 
 LDLIBS += -L$(KALDI_ROOT)/src/../tools/speex-1.2rc1-arm/lib -lspeex
 LDFLAGS += -Wl,-rpath=$(KALDI_ROOT)/src/../tools/speex-1.2rc1-arm/lib
