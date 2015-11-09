@@ -26,6 +26,7 @@
 #include "matrix/kaldi-vector.h"
 #include "matrix/kaldi-matrix.h"
 #include "matrix/matrix-functions.h"
+#include "matrix/sgemv_neon.h"
 
 // Do not include this file directly.  It is to be included
 // by .cc files in this directory.
@@ -162,8 +163,18 @@ inline void cblas_Xgemv(MatrixTransposeType trans, MatrixIndexT num_rows,
                         MatrixIndexT num_cols, float alpha, const float *Mdata,
                         MatrixIndexT stride, const float *xdata,
                         MatrixIndexT incX, float beta, float *ydata, MatrixIndexT incY) {
-  cblas_sgemv(CblasRowMajor, static_cast<CBLAS_TRANSPOSE>(trans), num_rows,
+#ifdef _ACCELERATE_
+    accelerate_sgemv( 
+            static_cast<CBLAS_TRANSPOSE>(trans), 
+            num_rows, num_cols, 
+            alpha, 
+            Mdata, 
+            stride, 
+            xdata, incX, beta, ydata, incY);
+#else    
+    cblas_sgemv(CblasRowMajor, static_cast<CBLAS_TRANSPOSE>(trans), num_rows,
               num_cols, alpha, Mdata, stride, xdata, incX, beta, ydata, incY);
+#endif
 }
 inline void cblas_Xgemv(MatrixTransposeType trans, MatrixIndexT num_rows,
                         MatrixIndexT num_cols, double alpha, const double *Mdata,
