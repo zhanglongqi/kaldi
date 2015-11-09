@@ -73,8 +73,11 @@ inline double cblas_Xdot(const int N, const double *const X,
 }
 inline void cblas_Xaxpy(const int N, const float alpha, const float *X,
                         const int incX, float *Y, const int incY) {
- // cblas_saxpy(N, alpha, X, incX, Y, incY);
+#ifdef _NEON_
     accelerate_saxpy(N, alpha, X, incX, Y, incY);
+#else
+    cblas_saxpy(N, alpha, X, incX, Y, incY);
+#endif
 }
 inline void cblas_Xaxpy(const int N, const double alpha, const double *X,
                         const int incX, double *Y, const int incY) {
