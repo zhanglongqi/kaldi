@@ -17,122 +17,112 @@
 
 #endif
 
-/* Subroutine */int accelerate_saxpy(const int n,const float sa,const float *sx,const int incx,
-		float *sy,const int incy)
-{
+/* Subroutine */
+int accelerate_saxpy(const int n, const float sa, const float *sx, const int incx,
+        float *sy, const int incy) {
 
-	/* System generated locals */
-	int i__1;
+    /* System generated locals */
+    int i__1;
 
-	/* Local variables */
-	static int i, m, ix, iy, mp1;
+    /* Local variables */
+    static int i, m, ix, iy, mp1;
 
-	/*     constant times a vector plus a vector.
-	 uses unrolled loop for increments equal to one.
-	 jack dongarra, linpack, 3/11/78.
-	 modified 12/3/93, array(1) declarations changed to array(*)
+    /*     constant times a vector plus a vector.
+     uses unrolled loop for increments equal to one.
+     jack dongarra, linpack, 3/11/78.
+     modified 12/3/93, array(1) declarations changed to array(*)
 
 
 
-	 Parameter adjustments
-	 Function Body */
+     Parameter adjustments
+     Function Body */
 #define SY(I) sy[(I)-1]
 #define SX(I) sx[(I)-1]
 
-	if (n <= 0)
-	{
-		return 0;
-	}
-	if (sa == 0.f)
-	{
-		return 0;
-	}
-	if (incx == 1 && incy == 1)
-	{
-		goto L20;
-	}
+    if (n <= 0) {
+        return 0;
+    }
+    if (sa == 0.f) {
+        return 0;
+    }
+    if (incx == 1 && incy == 1) {
+        goto L20;
+    }
 
-	/*        code for unequal increments or equal increments
-	 not equal to 1 */
+    /*        code for unequal increments or equal increments
+     not equal to 1 */
 
-	ix = 1;
-	iy = 1;
-	if (incx < 0)
-	{
-		ix = (-(n) + 1) * incx + 1;
-	}
-	if (incy < 0)
-	{
-		iy = (-(n) + 1) * incy + 1;
-	}
-	i__1 = n;
-	for (i = 1; i <= n; ++i)
-	{
-		SY(iy)+= sa * SX(ix);
-		ix += incx;
-		iy += incy;
-		/* L10: */
-	}
-	return 0;
+    ix = 1;
+    iy = 1;
+    if (incx < 0) {
+        ix = (-(n) + 1) * incx + 1;
+    }
+    if (incy < 0) {
+        iy = (-(n) + 1) * incy + 1;
+    }
+    i__1 = n;
+    for (i = 1; i <= n; ++i) {
+        SY(iy) += sa * SX(ix);
+        ix += incx;
+        iy += incy;
+        /* L10: */
+    }
+    return 0;
 
-	/*        code for both increments equal to 1
+    /*        code for both increments equal to 1
 
 
-	 clean-up loop */
+     clean-up loop */
 
-	L20: m = n % 4;
-	if (m == 0)
-	{
-		goto L40;
-	}
-	i__1 = m;
+L20:
+    m = n % 4;
+    if (m == 0) {
+        goto L40;
+    }
+    i__1 = m;
 #ifdef _NEON_
-	float32x4_t vresult, vsx, vsy, vsa;
+    float32x4_t vresult, vsx, vsy, vsa;
 
-	vsa = vdupq_n_f32(sa); //load same literal value to vsa
+    vsa = vdupq_n_f32(sa); //load same literal value to vsa
 
-	for (i = 0; i <= m - 1; i += 4)
-	{
-		vsx = vld1q_f32(sx); //load 4 values to sx and sy
-		vsy = vld1q_f32(sy);
-		vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
-		vst1q_f32(sy, vresult); //store 4 values back to SY
-		sx += 4;
-		sy += 4;
-	}
+    for (i = 0; i <= m - 1; i += 4) {
+        vsx = vld1q_f32(sx); //load 4 values to sx and sy
+        vsy = vld1q_f32(sy);
+        vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
+        vst1q_f32(sy, vresult); //store 4 values back to SY
+        sx += 4;
+        sy += 4;
+    }
 #else
-	for (i = 1; i <= m; ++i)
-	{
-		SY(i)+= sa * SX(i);
+    for (i = 1; i <= m; ++i) {
+        SY(i) += sa * SX(i);
 
-		/* L30: */
-	}
+        /* L30: */
+    }
 #endif
-	if (n < 4)
-	{
-		return 0;
-	}
-	L40: mp1 = m + 1;
-	i__1 = n;
+    if (n < 4) {
+        return 0;
+    }
+L40:
+    mp1 = m + 1;
+    i__1 = n;
 #ifdef _NEON_
-	for (i = 0; i <= n; i += 4)
-	{
-		vsx = vld1q_f32(sx); //load 4 values to sx and sy
-		vsy = vld1q_f32(sy);
-		vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
-		vst1q_f32(sy, vresult); //store 4 values back to SY
-		sx += 4;
-		sy += 4;
-	}
+    for (i = 0; i <= n; i += 4) {
+        vsx = vld1q_f32(sx); //load 4 values to sx and sy
+        vsy = vld1q_f32(sy);
+        vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
+        vst1q_f32(sy, vresult); //store 4 values back to SY
+        sx += 4;
+        sy += 4;
+    }
 #else
-	for (i = mp1; i <= n; i += 4)
-	{
-		SY(i)+= sa * SX(i);
-		SY(i + 1) += sa * SX(i + 1);
-		SY(i + 2) += sa * SX(i + 2);
-		SY(i + 3) += sa * SX(i + 3);
-		/* L50: */
-	}
+    for (i = mp1; i <= n; i += 4) {
+        SY(i) += sa * SX(i);
+        SY(i + 1) += sa * SX(i + 1);
+        SY(i + 2) += sa * SX(i + 2);
+        SY(i + 3) += sa * SX(i + 3);
+        /* L50: */
+    }
 #endif
-	return 0;
+    return 0;
 } /* saxpy_ */
