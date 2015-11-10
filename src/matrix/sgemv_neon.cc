@@ -133,7 +133,7 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     /*     Test the input parameters. */
 
     /* Parameter adjustments */
-//    a_dim1 = lda;
+    a_dim1 = lda;
 //    a_offset = 1 + a_dim1;
 //    a -= a_offset;
 //    --x;
@@ -171,8 +171,8 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
 
     //    if (lsame_(trans, "N")) {
     if (1) {
-        lenx = m;
-        leny = n;
+        lenx = n;
+        leny = m;
     } else {
         lenx = m;
         leny = n;
