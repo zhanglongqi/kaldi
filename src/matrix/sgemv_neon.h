@@ -8,7 +8,7 @@
 #ifndef SGEMV_NEON_H
 #define	SGEMV_NEON_H
 
-#define _NEON_
+//#define _NEON_
 #define _ACCELERATE_
 #include <cstdlib>
 #include "f2c.h"
