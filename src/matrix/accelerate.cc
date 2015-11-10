@@ -16,7 +16,7 @@
 
 #endif
 
-                /* Subroutine */
+/* Subroutine */
 int accelerate_saxpy(const int n, const float sa, const float *sx, const int incx,
         float *sy, const int incy) {
 
@@ -25,9 +25,9 @@ int accelerate_saxpy(const int n, const float sa, const float *sx, const int inc
 
     /* Local variables */
     static int i, m, ix, iy, mp1;
-
 #ifdef _NEON_
     float32x4_t vresult, vsx, vsy, vsa;
+    int i1, i2;
     vsa = vdupq_n_f32(sa); //load same literal value to vsa
 #endif
     /*     constant times a vector plus a vector.
@@ -78,22 +78,22 @@ int accelerate_saxpy(const int n, const float sa, const float *sx, const int inc
      clean-up loop */
 
 L20:
-
 #ifdef _NEON_
-
-    if (n < 4) {
-        for (i = 0; i < 4; i++) {
-            sy[i] += sa * sx[i];
-        }
-    } else {
-        for (i = 0; i < n; i += 4) {
-            vsx = vld1q_f32(sx); //load 4 values to sx and sy
-            vsy = vld1q_f32(sy);
-            vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
-            vst1q_f32(sy, vresult); //store 4 values back to SY
-            sx += 4;
-            sy += 4;
-        }
+    i1 = n / 4;
+    i2 = n % 4;
+    for (i = 0; i < i1; ++i) {
+        vsx = vld1q_f32(sx); //load 4 values to sx and sy
+        vsy = vld1q_f32(sy);
+        vresult = vmlaq_f32(vsy, vsa, vsx); //result = a + b*c
+        vst1q_f32(sy, vresult); //store 4 values back to SY
+        sx += 4;
+        sy += 4;
+    }
+    //calc remain
+    for (i = 0; i < i2; ++i) {
+        (*sy) += sa * (*sx);
+        sx++;
+        sy++;
     }
 #else
     m = n % 4;
