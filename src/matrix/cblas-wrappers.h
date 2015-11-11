@@ -26,7 +26,7 @@
 #include "matrix/kaldi-vector.h"
 #include "matrix/kaldi-matrix.h"
 #include "matrix/matrix-functions.h"
-#include "matrix/accelerate.h"
+#include "matrix/saxpy_c.h"
 
 // Do not include this file directly.  It is to be included
 // by .cc files in this directory.
