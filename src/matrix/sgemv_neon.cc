@@ -192,18 +192,21 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     /*     accessed sequentially with one pass through A. */
 
 #ifdef _NEON_
-    float32x4_t v4result, v4A, v4X, valpha, vbeta, v4Y, v4AX;
+    float32x4_t v4result, v4A, v4X, v4Y, v4AX;
 
-    float32x4_t temp_AX, v4bY;
-    float temp_4AX[4];
-    float *temp_final_AX;
-    float *tx, *ta, *ty;
-    temp_final_AX = (float*)malloc(m * sizeof (float));
 
-    valpha = vdupq_n_f32(alpha); //load same literal value
-    vbeta = vdupq_n_f32(beta); //load same literal value
+    //	float32x4_t temp_AX, v4bY;
+    //	float temp_4AX[4];
+    //	float *temp_final_AX;
+    const float *ta;
+    float *ty;
+    //	temp_final_AX = (float *) malloc(m * sizeof(float));
 
-    int i1, i2, remain;
+    //	valpha, vbeta,
+    //	valpha = vdupq_n_f32(alpha); //load same literal value
+    //	vbeta = vdupq_n_f32(beta); //load same literal value
+
+    int i1, i2, remain, do_intger;
 #endif
     /*     First form  y := beta*y. */
 
@@ -215,34 +218,44 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
                     y[i__] = 0.f;
                     /* L10: */
                 }
-            } else {
-                //Charles: modified
-                i__1 = leny;
-#ifdef _NEON_
-                //calc bY
-                remain = leny % 4;
-                ty = y + 1;
-                for (i__ = 1; i__ <= i__1 - remain; i__ += 4) {
-                    //calc 4 multiples
-
-                    v4Y = vld1q_f32(ty); //load 4 Y
-                    v4bY = vmulq_f32(vbeta, v4Y); // b*Y
-
-                    vst1q_f32(ty, v4bY); //store 4 values back to y
-                    ty += 4;
-                }
-                //calc remain
-                for (i1 = 0; i1 < remain; ++i1) {
-                    (*ty) = beta * (*ty);
-                    ty++;
-                }
-#else
-                for (i__ = 1; i__ <= i__1; ++i__) {
-                    y[i__] = beta * y[i__];
-                    /* L20: */
-                }
-#endif
             }
+            //			else
+            //			{
+            //				//Charles: modified
+            //				i__1 = leny;
+            //#ifdef _NEON1_
+            //				//calc bY
+            //				remain = leny % 4;
+            //				ty = y+1;
+            //				for (i__ = 1; i__ <= i__1 - remain; i__ += 4)
+            //				{
+            //					//calc 4 multiples
+            //
+            //					v4Y = vld1q_f32(ty);//load 4 Y
+            ////					v4Y[0] = *(ty);//load 4 Y
+            ////					v4Y[1] = *(ty+1);//load 4 Y
+            ////					v4Y[2] = *(ty+2);//load 4 Y
+            ////					v4Y[3] = *(ty+3);//load 4 Y
+            //
+            //					v4bY = vmulq_f32(vbeta, v4Y);// b*Y
+            //
+            //					vst1q_f32(ty, v4bY);//store 4 values back to y
+            //					ty += 4;
+            //				}
+            //				//calc remain
+            //				for (i1 = 0; i1 < remain; ++i1)
+            //				{
+            //					(*ty) = beta * (*ty);
+            //					ty ++;
+            //				}
+            //#else
+            ////				for (i__ = 1; i__ <= i__1; ++i__)
+            ////				{
+            ////					y[i__] = beta * y[i__];
+            ////					/* L20: */
+            ////				}
+            //#endif
+            //			}
         } else {
             iy = ky;
             if (beta == 0.f) {
@@ -273,6 +286,67 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
         jx = kx;
         if (incy == 1) {
             //Charles: modified
+#ifdef _NEON_
+            int row_a[4];
+            do_intger = (leny >> 2) + 1;
+            remain = leny % 4;
+            ta = a;
+            ty = y + 1;
+
+            i__1 = leny;
+            for (j = 1; j <= leny; j += 4) {
+                //calc AX
+                //clean 4AX
+                v4AX = vdupq_n_f32(0.f);
+                i__2 = lenx;
+
+                row_a[0] = (j) * a_dim1;
+                row_a[1] = (j + 1) * a_dim1;
+                row_a[2] = (j + 2) * a_dim1;
+                row_a[3] = (j + 3) * a_dim1;
+
+                for (i__ = 1; i__ <= i__2; ++i__) {
+                    v4A[0] = *(ta + i__ + row_a[0]); //row +0
+                    v4A[1] = *(ta + i__ + row_a[1]); //row +1
+                    v4A[2] = *(ta + i__ + row_a[2]); //row +2
+                    v4A[3] = *(ta + i__ + row_a[3]); //row +3
+
+                    //load 4 same x(n)
+                    v4X = vdupq_n_f32(x[i__]);
+
+                    //v4AX += v4A * v4X
+                    v4AX = vmlaq_f32(v4AX, v4A, v4X);
+
+                }
+
+                //calc y = bY
+                v4Y = vld1q_f32(ty); //load 4 Y
+
+                //Vector multiply by scalar,
+                /*float32x4_t vmulq_n_f32(float32x4_t a, float32_t b); // VMUL.F32 q0,q0,d0[0]*/
+                v4Y = vmulq_n_f32(v4Y, beta);
+                //				v4Y = vmulq_f32(vbeta, v4Y); //b*Y
+
+                //calc y = aAX + y
+                /*
+                 * Vector multiply accumulate with scalar
+                 * float32x4_t vmlaq_n_f32(float32x4_t a, float32x4_t b, float32_t c);    // VMLA.F32 q0, q0, d0[0]
+                 */
+                v4result = vmlaq_n_f32(v4Y, v4AX, alpha);
+                //				v4result = vmlaq_f32(v4Y, valpha, v4AX);
+
+                if (j == do_intger) //deal with the remaining
+                {
+                    for (i1 = 0; i1 < remain; ++i1) {
+                        (*ty) = v4result[i1];
+                        ty++;
+                    }
+                } else {
+                    vst1q_f32(ty, v4result);
+                    ty += 4;
+                }
+            }
+#else
             i__1 = leny;
             for (j = 1; j <= i__1; ++j) {
                 i__2 = lenx;
@@ -283,6 +357,7 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
                 }
                 /* L60: */
             }
+#endif
         } else {
             i__1 = n;
             for (j = 1; j <= i__1; ++j) {
