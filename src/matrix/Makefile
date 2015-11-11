@@ -12,7 +12,7 @@ include ../kaldi.mk
 
 TESTFILES = matrix-lib-test kaldi-gpsr-test sparse-matrix-test #matrix-lib-speed-test
 
-OBJFILES = sgemv_neon.o kaldi-matrix.o kaldi-vector.o packed-matrix.o sp-matrix.o tp-matrix.o \
+OBJFILES = saxpy_neon.o sgemv_neon.o kaldi-matrix.o kaldi-vector.o packed-matrix.o sp-matrix.o tp-matrix.o \
            matrix-functions.o qr.o srfft.o kaldi-gpsr.o compressed-matrix.o \
            sparse-matrix.o optimization.o
 
