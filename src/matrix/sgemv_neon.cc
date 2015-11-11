@@ -22,13 +22,8 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     int i__, j, ix, iy, jx, jy, kx, ky, info;
     float temp;
     int lenx, leny;
-
-    //#define x(I) X[(I)-1]
-    //#define y(I) Y[(I)-1]
-    //#define a(I) A[(I)-1]
-
-    //	extern logical lsame_(char *, char *);
-    //	extern /* Subroutine */int xerbla_(char *, int *);
+    //    extern logical lsame_(char *, char *);
+    //    extern /* Subroutine */ int xerbla_(char *, int *);
 
     /*     .. Scalar Arguments .. */
     /*     .. */
@@ -138,43 +133,33 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     /*     Test the input parameters. */
 
     /* Parameter adjustments */
-    	a_dim1 = lda;
-    //	a_offset = 1 + a_dim1;
-    //	a -= a_offset;
-    //	--x;
-    //	--y;
+    a_dim1 = lda;
+    a_offset = 1 + a_dim1;
+    a -= a_offset;
+    --x;
+    --y;
+
     /* Function Body */
-    /*	info = 0;
-     if (!lsame_(trans, "N") && !lsame_(trans, "T") && !lsame_(trans, "C"))
-     {
+    /*info = 0;
+     if (! lsame_(trans, "N") && ! lsame_(trans, "T") && ! lsame_(trans, "C")
+     ) {
      info = 1;
-     }
-     else if (m< 0)
-     {
+     } else if (m < 0) {
      info = 2;
-     }
-     else if (n < 0)
-     {
+     } else if (n < 0) {
      info = 3;
-     }
-     else if (*lda < max(1,m))
-     {
+     } else if (lda < max(1,m)) {
      info = 6;
-     }
-     else if (incx == 0)
-     {
+     } else if (incx == 0) {
      info = 8;
-     }
-     else if (incy == 0)
-     {
+     } else if (incy == 0) {
      info = 11;
      }
-     if (info != 0)
-     {
+     if (info != 0) {
      xerbla_("SGEMV ", &info);
      return 0;
-     }
-     */
+     }*/
+
     /*     Quick return if possible. */
 
     if (m == 0 || n == 0 || alpha == 0.f && beta == 1.f) {
@@ -184,7 +169,8 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     /*     Set  LENX  and  LENY, the lengths of the vectors x and y, and set */
     /*     up the start points in  X  and  Y. */
 
-    if (trans == 'o') {
+    //    if (lsame_(trans, "N")) {
+    if (1) {
         lenx = n;
         leny = m;
     } else {
@@ -194,93 +180,81 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     if (incx > 0) {
         kx = 1;
     } else {
-        kx = 1 - (lenx - 1) * incx; //Charles: kx >= 1
+        kx = 1 - (lenx - 1) * incx;
     }
     if (incy > 0) {
         ky = 1;
     } else {
-        ky = 1 - (leny - 1) * incy; //Charles: ky >= 1
+        ky = 1 - (leny - 1) * incy;
     }
-#ifdef _NEON_
-    int row, column;
-    float32x4_t v4result, v4A, v4X, valpha, vbeta, v4Y, v4AX;
-
-    valpha = vdupq_n_f32(alpha); //load same literal value
-    vbeta = vdupq_n_f32(beta); //load same literal value
-
-#endif
 
     /*     Start the operations. In this version the elements of A are */
     /*     accessed sequentially with one pass through A. */
 
+#ifdef _NEON_
+    float32x4_t v4result, v4A, v4X, valpha, vbeta, v4Y, v4AX;
+
+    float32x4_t temp_AX, v4bY;
+    float temp_4AX[4];
+    float *temp_final_AX;
+    float *tx, *ta, *ty;
+    temp_final_AX = (float*)malloc(m * sizeof (float));
+
+    valpha = vdupq_n_f32(alpha); //load same literal value
+    vbeta = vdupq_n_f32(beta); //load same literal value
+
+    int i1, i2, remain;
+#endif
     /*     First form  y := beta*y. */
 
     if (beta != 1.f) {
         if (incy == 1) {
-            if (beta == 0.f) //Charles: if beta is 0, then clr all data to 0
-            {
-
+            if (beta == 0.f) {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[i__] = 0.f;
                     /* L10: */
                 }
-            } else //Charles: real operation
-            {
+            } else {
+                //Charles: modified
+                i__1 = leny;
+#ifdef _NEON_
+                //calc bY
+                remain = leny % 4;
+                ty = y + 1;
+                for (i__ = 1; i__ <= i__1 - remain; i__ += 4) {
+                    //calc 4 multiples
 
-                //#ifdef _NEON_
-                //				i__1 = leny;
-                //				if (i__1 < 4)
-                //				{
-                //					for (i__ = 0; i__ < i__1; ++i__)
-                //					{
-                //						y[i__] = beta * y[i__];
-                //						/* L20: */
-                //					}
-                //				}
-                //				else //Charles: using neon
-                //				{
-                //					i1 = leny / 4;
-                //					i2 = leny % 4;
-                //					y++; //for compensating the --y in the Parameter adjustments
-                //					//calc 4 data
-                //					for (i__ = 1; i__ <= i1; ++i__)
-                //					{
-                //						vy = vld1q_f32(y); //load 4 value from y
-                //						v4result = vmulq_f32(vbeta, vy); //result = b*y
-                //						vst1q_f32(y, v4result); //store 4 values back to vy
-                //						y += 4;
-                //					}
-                //					//calc remain
-                //					for (i__ = 1; i__ <= i2; ++i__)
-                //					{
-                //						*y = beta * (*y);
-                //						y++;
-                //						/* L20: */
-                //					}
-                //				}
-                //#else
-                //				i__1 = leny;
-                //				for (i__ = 0; i__ < i__1; ++i__)
-                //				{
-                //					y[i__] = beta * y[i__];
-                //					/* L20: */
-                //				}
-                //#endif
+                    v4Y = vld1q_f32(ty); //load 4 Y
+                    v4bY = vmulq_f32(vbeta, v4Y); // b*Y
+
+                    vst1q_f32(ty, v4bY); //store 4 values back to y
+                    ty += 4;
+                }
+                //calc remain
+                for (i1 = 0; i1 < remain; ++i1) {
+                    (*ty) = beta * (*ty);
+                    ty++;
+                }
+#else
+                for (i__ = 1; i__ <= i__1; ++i__) {
+                    y[i__] = beta * y[i__];
+                    /* L20: */
+                }
+#endif
             }
-        } else //for incy > 1
-        {
+        } else {
             iy = ky;
             if (beta == 0.f) {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[iy] = 0.f;
                     iy += incy;
                     /* L30: */
                 }
             } else {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[iy] = beta * y[iy];
                     iy += incy;
                     /* L40: */
@@ -291,97 +265,32 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     if (alpha == 0.f) {
         return 0;
     }
-    if (trans == 'o') {
-       
+    //    if (lsame_(trans, "N")) {
+    if (1) {
+
         /*        Form  y := alpha*A*x + y. */
 
         jx = kx;
         if (incy == 1) {
-#ifdef _NEON_
-            float32x4_t temp_AX, v4bY;
-            float temp_4AX[4];
-            float *temp_final_AX;
-            float *tx, *ta;
-            temp_final_AX = (float*) malloc(m * sizeof (float));
-
-            int i1, i2;
-            i1 = n >> 2;
-            i2 = n % 4;
-
-            //calc AX
-            ta = (float*) a;
-            for (row = 0; row < m; ++row) {
-                //calc 4 multiples
-                v4AX = vdupq_n_f32(0); //initial temp_AX
-
-                int icolumn;
-                tx = (float*) x;
-
-                temp_final_AX[row] = 0;
-                //calc 4 multiples
-                for (icolumn = 0; icolumn < i1; ++icolumn) {
-
-                    v4A = vld1q_f32(ta); //load 4 values
-                    v4X = vld1q_f32(tx);
-                    v4AX = vmlaq_f32(v4AX, v4A, v4X); //result = a + b*c
-                    vst1q_f32(temp_4AX, v4AX);
-                    temp_final_AX[row] = temp_4AX[0] + temp_4AX[1] + temp_4AX[2]
-                            + temp_4AX[3];
-                    ta += 4;
-                    tx += 4;
+            //Charles: modified
+            i__1 = leny;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = lenx;
+                for (i__ = 1; i__ <= i__2; ++i__) {
+                    temp = alpha * a[i__ + j * a_dim1];
+                    y[j] += temp * x[i__];
+                    /* L50: */
                 }
-                //calc remain
-                for (icolumn = 0; icolumn < i2; ++icolumn) {
-                    temp_final_AX[row] += (*ta) * (*tx);
-                    ta++;
-                    tx++;
-                }
-            }
-
-            //calc y = aAX + bY;
-            //y is m vector
-            i1 = m >> 2;
-            i2 = m % 4;
-            //calc 4 multiples
-            for (row = 0; row < i1; ++row) {
-                v4Y = vld1q_f32(y); //load 4 Y
-                v4AX = vld1q_f32(temp_final_AX); //load 4 AX
-                v4bY = vmulq_f32(vbeta, v4Y); // b*Y
-                v4result = vmlaq_f32(v4bY, valpha, v4AX); //result = a + b*c
-                vst1q_f32(y, v4result); //store 4 values back to y
-                y += 4;
-                temp_final_AX += 4;
-            }
-            //calc remain
-            for (row = 0; row < i2; ++row) {
-                (*y) = alpha * (*temp_final_AX) + beta * (*y);
-                y++;
-                temp_final_AX++;
-            }
-#else
-            i__1 = n;
-            for (j = 0; j < i__1; ++j) {
-                if (x[jx] != 0.f) {
-                    temp = alpha * x[jx];
-                    i__2 = m;
-                    for (i__ = 1; i__ <= i__2; ++i__) {
-                        y[i__] += temp * a[i__ + j * a_dim1];
-                        /* L50: */
-                    }
-                }
-                jx += incx;
                 /* L60: */
             }
-#endif
-        } else //for incx > 1
-        {
+        } else {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 if (x[jx] != 0.f) {
                     temp = alpha * x[jx];
                     iy = ky;
                     i__2 = m;
-                    for (i__ = 0; i__ < i__2; ++i__) {
+                    for (i__ = 1; i__ <= i__2; ++i__) {
                         y[iy] += temp * a[i__ + j * a_dim1];
                         iy += incy;
                         /* L70: */
@@ -398,10 +307,10 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
         jy = ky;
         if (incx == 1) {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 temp = 0.f;
                 i__2 = m;
-                for (i__ = 0; i__ < i__2; ++i__) {
+                for (i__ = 1; i__ <= i__2; ++i__) {
                     temp += a[i__ + j * a_dim1] * x[i__];
                     /* L90: */
                 }
@@ -411,11 +320,11 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
             }
         } else {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 temp = 0.f;
                 ix = kx;
                 i__2 = m;
-                for (i__ = 0; i__ < i__2; ++i__) {
+                for (i__ = 1; i__ <= i__2; ++i__) {
                     temp += a[i__ + j * a_dim1] * x[ix];
                     ix += incx;
                     /* L110: */
@@ -432,4 +341,3 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
     /*     End of SGEMV . */
 
 } /* sgemv_ */
-
