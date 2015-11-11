@@ -134,10 +134,10 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
 
     /* Parameter adjustments */
     a_dim1 = lda;
-//    a_offset = 1 + a_dim1;
-//    a -= a_offset;
-//    --x;
-//    --y;
+    a_offset = 1 + a_dim1;
+    a -= a_offset;
+    --x;
+    --y;
 
     /* Function Body */
     /*info = 0;
@@ -197,13 +197,14 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
         if (incy == 1) {
             if (beta == 0.f) {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[i__] = 0.f;
                     /* L10: */
                 }
             } else {
+                //Charles: modified
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[i__] = beta * y[i__];
                     /* L20: */
                 }
@@ -212,14 +213,14 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
             iy = ky;
             if (beta == 0.f) {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[iy] = 0.f;
                     iy += incy;
                     /* L30: */
                 }
             } else {
                 i__1 = leny;
-                for (i__ = 0; i__ < i__1; ++i__) {
+                for (i__ = 1; i__ <= i__1; ++i__) {
                     y[iy] = beta * y[iy];
                     iy += incy;
                     /* L40: */
@@ -237,10 +238,11 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
 
         jx = kx;
         if (incy == 1) {
+            //Charles: modified
             i__1 = leny;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 i__2 = lenx;
-                for (i__ = 0; i__ < i__2; ++i__) {
+                for (i__ = 1; i__ <= i__2; ++i__) {
                     temp = alpha * a[i__ + j * a_dim1];
                     y[j] += temp * x[i__];
                     /* L50: */
@@ -249,12 +251,12 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
             }
         } else {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 if (x[jx] != 0.f) {
                     temp = alpha * x[jx];
                     iy = ky;
                     i__2 = m;
-                    for (i__ = 0; i__ < i__2; ++i__) {
+                    for (i__ = 1; i__ <= i__2; ++i__) {
                         y[iy] += temp * a[i__ + j * a_dim1];
                         iy += incy;
                         /* L70: */
@@ -271,10 +273,10 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
         jy = ky;
         if (incx == 1) {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 temp = 0.f;
                 i__2 = m;
-                for (i__ = 0; i__ < i__2; ++i__) {
+                for (i__ = 1; i__ <= i__2; ++i__) {
                     temp += a[i__ + j * a_dim1] * x[i__];
                     /* L90: */
                 }
@@ -284,11 +286,11 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
             }
         } else {
             i__1 = n;
-            for (j = 0; j < i__1; ++j) {
+            for (j = 1; j <= i__1; ++j) {
                 temp = 0.f;
                 ix = kx;
                 i__2 = m;
-                for (i__ = 0; i__ < i__2; ++i__) {
+                for (i__ = 1; i__ <= i__2; ++i__) {
                     temp += a[i__ + j * a_dim1] * x[ix];
                     ix += incx;
                     /* L110: */
