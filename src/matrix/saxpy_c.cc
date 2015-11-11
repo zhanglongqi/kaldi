@@ -8,7 +8,7 @@
  You must link the resulting object file with the libraries:
  -lf2c -lm   (in that order)
  */
-#include "accelerate.h"
+#include "saxpy_c.h"
 
 #ifdef _NEON_
 
