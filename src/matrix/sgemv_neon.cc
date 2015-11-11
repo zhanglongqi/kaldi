@@ -305,7 +305,7 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
             temp_final_AX = (float*) malloc(m * sizeof (float));
 
             int i1, i2;
-            i1 = n / 4;
+            i1 = n >> 2;
             i2 = n % 4;
 
             //calc AX
@@ -340,7 +340,7 @@ int accelerate_sgemv(char trans, int m, int n, float alpha,
 
             //calc y = aAX + bY;
             //y is m vector
-            i1 = m / 4;
+            i1 = m >> 2;
             i2 = m % 4;
             //calc 4 multiples
             for (row = 0; row < i1; ++row) {
